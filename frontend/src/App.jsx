@@ -49,9 +49,12 @@ export default function App() {
   const [lastTxHash, setLastTxHash] = useState(null);
   const [tripOpen, setTripOpen] = useState(false);
   const [tripSyncing, setTripSyncing] = useState(false);
+  const [tripSyncError, setTripSyncError] = useState(null);
   const [activityLog, setActivityLog] = useState([]);
 
   const [balance, setBalance] = useState(null);
+  const [balanceSyncing, setBalanceSyncing] = useState(false);
+  const [balanceSyncError, setBalanceSyncError] = useState(null);
   const [faucetStatus, setFaucetStatus] = useState(STATUS.IDLE);
   const [faucetError, setFaucetError] = useState(null);
   const [faucetClaimed, setFaucetClaimed] = useState(false);
@@ -101,8 +104,12 @@ export default function App() {
   // Pulls the rider's real on-chain trip state and syncs local UI
   // state to match it. Used right after connecting, and again after
   // every tap, so the buttons never lie about what's actually on chain.
+  // On failure, local state is left as-is (so the UI doesn't lie in
+  // the other direction) but the error is surfaced with a retry option
+  // rather than failing silently.
   const syncTripState = useCallback(async (key) => {
     setTripSyncing(true);
+    setTripSyncError(null);
     try {
       const openTrip = await getOpenTrip(key);
       if (openTrip) {
@@ -112,16 +119,20 @@ export default function App() {
       } else {
         setTripOpen(false);
       }
-    } catch {
-      // Sync failure shouldn't block the UI - fall back to whatever
-      // local state currently says, user can still act manually.
+    } catch (err) {
+      setTripSyncError(err.message || "Couldn't check your trip status on-chain.");
     } finally {
       setTripSyncing(false);
     }
   }, []);
 
   // Pulls the rider's real FARE balance and faucet-claim status.
+  // Same pattern as syncTripState: keep the last known values on
+  // failure, but tell the rider so they can retry instead of staring
+  // at a balance that might be stale or wrong.
   const syncBalanceState = useCallback(async (key) => {
+    setBalanceSyncing(true);
+    setBalanceSyncError(null);
     try {
       const [bal, claimed] = await Promise.all([
         getBalance(key),
@@ -129,8 +140,10 @@ export default function App() {
       ]);
       setBalance(bal);
       setFaucetClaimed(claimed);
-    } catch {
-      // leave previous values as-is on failure
+    } catch (err) {
+      setBalanceSyncError(err.message || "Couldn't load your balance.");
+    } finally {
+      setBalanceSyncing(false);
     }
   }, []);
 
@@ -174,6 +187,23 @@ export default function App() {
     })();
   }, [publicKey, balance, faucetClaimed, faucetStatus, syncBalanceState]);
 
+  // Fetches the initial page of on-chain history for an address.
+  // Pulled out as its own function (rather than inline in the effect
+  // below) so a "Retry" button can call it again after a failure,
+  // without having to re-run wallet connection or restart the stream.
+  const loadHistory = useCallback(async (key) => {
+    setHistoryStatus(STATUS.LOADING);
+    setHistoryError(null);
+    try {
+      const initial = await getAccountHistory(key, 20);
+      setChainHistory(initial);
+      setHistoryStatus(STATUS.SUCCESS);
+    } catch (err) {
+      setHistoryError(err.message || "Couldn't load on-chain history.");
+      setHistoryStatus(STATUS.ERROR);
+    }
+  }, []);
+
   // Loads real on-chain history for the connected wallet from Horizon,
   // then opens a live SSE stream so newly-confirmed operations (taps,
   // faucet claims, anything) appear in real time without polling.
@@ -191,20 +221,9 @@ export default function App() {
     let unsubscribe = null;
 
     (async () => {
-      setHistoryStatus(STATUS.LOADING);
-      setHistoryError(null);
-      try {
-        const initial = await getAccountHistory(publicKey, 20);
-        if (cancelled) return;
-        setChainHistory(initial);
-        setHistoryStatus(STATUS.SUCCESS);
-      } catch (err) {
-        if (cancelled) return;
-        setHistoryError(err.message);
-        setHistoryStatus(STATUS.ERROR);
-      }
-
+      await loadHistory(publicKey);
       if (cancelled) return;
+
       unsubscribe = streamAccountHistory(publicKey, {
         onOperation: (op) => {
           setHistoryLive(true);
@@ -220,7 +239,7 @@ export default function App() {
       cancelled = true;
       unsubscribe?.();
     };
-  }, [publicKey]);
+  }, [publicKey, loadHistory]);
 
   const handleTapIn = useCallback(async () => {
     if (!publicKey) return;
@@ -324,8 +343,12 @@ export default function App() {
                 className="stellar-logo"
                 src="/stellar-logo.png"
                 alt="Stellar"
-                onError={(e) => { e.currentTarget.style.display = "none"; }}
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                  e.currentTarget.nextSibling.style.display = "inline";
+                }}
               />
+              <span className="stellar-logo-fallback">Stellar Transit</span>
             </h1>
           </div>
 
@@ -417,7 +440,23 @@ export default function App() {
                         : tripOpen ? `Tap out at ${exitStation}` : `Tap in at ${entryStation}`}
                     </button>
 
-                    {tripSyncing && <p className="hint">Checking your trip status on-chain…</p>}
+                    {tripSyncing && (
+                      <p className="hint hint--loading">
+                        <Spinner /> Checking your trip status on-chain…
+                      </p>
+                    )}
+                    {!tripSyncing && tripSyncError && (
+                      <div className="inline-error">
+                        <p className="error" role="alert">{tripSyncError}</p>
+                        <button
+                          type="button"
+                          className="btn btn--retry"
+                          onClick={() => syncTripState(publicKey)}
+                        >
+                          Retry
+                        </button>
+                      </div>
+                    )}
                     {tapStatus === STATUS.ERROR && <p className="error" role="alert">{tapError}</p>}
                     {tapStatus === STATUS.SUCCESS && lastTxHash && (
                       <p className="success">
@@ -445,10 +484,30 @@ export default function App() {
               <aside className="stat-column">
                 <div className="stat-card">
                   <span className="stat-card__label">Balance</span>
-                  <span className="stat-card__value stat-card__value--go">
-                    {balance === null ? "—" : balance}
-                  </span>
+                  {balanceSyncing && balance === null ? (
+                    <span className="stat-card__value stat-card__value--go">
+                      <Spinner />
+                    </span>
+                  ) : (
+                    <span className="stat-card__value stat-card__value--go">
+                      {balance === null ? "—" : balance}
+                    </span>
+                  )}
                   <span className="stat-card__unit">FARE</span>
+                  {balanceSyncError && (
+                    <div className="inline-error inline-error--compact">
+                      <span className="stat-card__hint stat-card__hint--error">
+                        {balanceSyncError}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn btn--retry btn--retry-sm"
+                        onClick={() => syncBalanceState(publicKey)}
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="stat-card">
@@ -612,10 +671,22 @@ export default function App() {
               <section className="card-panel">
                 <h2 className="panel__title">Balance</h2>
                 <div className="big-number">
-                  {balance === null ? "…" : balance}
+                  {balanceSyncing && balance === null ? <Spinner size={22} /> : balance === null ? "…" : balance}
                   <span className="big-number__unit">FARE</span>
                 </div>
                 <p className="panel__note">Available for your next tap-in hold.</p>
+                {balanceSyncError && (
+                  <div className="inline-error">
+                    <p className="error" role="alert">{balanceSyncError}</p>
+                    <button
+                      type="button"
+                      className="btn btn--retry"
+                      onClick={() => syncBalanceState(publicKey)}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
               </section>
 
               <section className="card-panel">
@@ -724,10 +795,21 @@ export default function App() {
                     </p>
 
                     {historyStatus === STATUS.LOADING && (
-                      <p className="hint">Loading transaction history…</p>
+                      <p className="hint hint--loading">
+                        <Spinner /> Loading transaction history…
+                      </p>
                     )}
                     {historyStatus === STATUS.ERROR && (
-                      <p className="error" role="alert">{historyError}</p>
+                      <div className="inline-error">
+                        <p className="error" role="alert">{historyError}</p>
+                        <button
+                          type="button"
+                          className="btn btn--retry"
+                          onClick={() => loadHistory(publicKey)}
+                        >
+                          Retry
+                        </button>
+                      </div>
                     )}
                     {historyStatus === STATUS.SUCCESS && chainHistory.length === 0 && (
                       <p className="panel__note">No on-chain activity yet for this address.</p>
@@ -802,6 +884,34 @@ export default function App() {
         </main>
       </div>
     </div>
+  );
+}
+
+function Spinner({ size = 14 }) {
+  return (
+    <svg
+      className="spinner"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeOpacity="0.2"
+      />
+      <path
+        d="M21 12a9 9 0 0 0-9-9"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 

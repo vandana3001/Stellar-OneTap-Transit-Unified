@@ -226,6 +226,13 @@ body {
   width: auto;
 }
 
+.stellar-logo-fallback {
+  display: none;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+}
+
 .section-accent {
   height: 3px;
   background: var(--go);
@@ -877,6 +884,60 @@ select {
   border-radius: var(--radius-sm);
   padding: 9px 12px;
   margin: 0;
+}
+
+.hint--loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  color: currentColor;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.inline-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--stop-soft);
+  border: 1px solid var(--stop-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+}
+
+.inline-error .error {
+  flex: 1;
+}
+
+.inline-error--compact {
+  padding: 6px 8px;
+  gap: 8px;
+}
+
+.stat-card__hint--error {
+  color: var(--stop);
+}
+
+.btn--retry {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  font-size: 0.78rem;
+  background: var(--stop);
+  color: #fff;
+  border-radius: var(--radius-sm);
+}
+
+.btn--retry-sm {
+  padding: 5px 10px;
+  font-size: 0.72rem;
 }
 
 .error {
