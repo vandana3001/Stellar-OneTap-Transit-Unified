@@ -5,13 +5,16 @@ import {
   nativeToScVal,
   scValToNative,
   BASE_FEE,
+  xdr,
 } from "@stellar/stellar-sdk";
 import {
   isConnected,
   requestAccess,
   signTransaction,
 } from "@stellar/freighter-api";
-import { NETWORK, CONTRACTS } from "./config";
+import { NETWORK, CONTRACTS, OPERATORS } from "./config";
+
+const OPERATOR_LABELS = Object.fromEntries(OPERATORS.map((op) => [op.id, op.label]));
 
 /**
  * Checks whether Freighter is installed AND actually reachable, by
@@ -243,6 +246,57 @@ export async function claimFaucet(sourcePublicKey) {
 }
 
 /**
+ * Decodes the base64 XDR ScVal parameters Horizon returns for an
+ * invoke_host_function operation into plain JS values. Horizon lists
+ * these in call order: the invoked contract address, the function
+ * name (as a Symbol), then each argument passed to that function -
+ * exactly what's needed to reconstruct a human-readable "tap_in at
+ * RAJIV_CHK" style summary without a second RPC round trip.
+ */
+function decodeInvocationParams(parameters) {
+  if (!Array.isArray(parameters)) return null;
+  try {
+    return parameters.map((p) => scValToNative(xdr.ScVal.fromXDR(p.value, "base64")));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Turns a raw Horizon operation record into a short, rider-facing
+ * description of what actually happened on-chain - e.g. "Tap in on
+ * Delhi Metro at RAJIV_CHK" instead of just "Contract call". Returns
+ * null (rather than throwing) if the operation isn't one of ours or
+ * decoding fails for any reason, so the UI can just fall back to the
+ * generic operation label.
+ */
+function describeOperation(record) {
+  if (record.type !== "invoke_host_function") return null;
+
+  const values = decodeInvocationParams(record.parameters);
+  if (!values || values.length < 2) return null;
+
+  const fn = values[1];
+  const args = values.slice(2);
+
+  switch (fn) {
+    case "tap_in": {
+      const [, operatorId, station] = args; // args[0] is the rider address
+      const label = OPERATOR_LABELS[operatorId] || operatorId;
+      return station ? `Tap in on ${label} at ${station}` : `Tap in on ${label}`;
+    }
+    case "tap_out": {
+      const [, station] = args; // args[0] is the rider address
+      return station ? `Tap out at ${station}` : "Tap out";
+    }
+    case "claim_faucet":
+      return "Starter faucet claim";
+    default:
+      return null;
+  }
+}
+
+/**
  * Fetches the most recent operations for an account directly from
  * Horizon (not Soroban RPC) - this gives real on-chain history
  * including contract invocations, payments, account creation, etc.
@@ -316,6 +370,7 @@ function mapOperationRecord(record) {
     txHash: record.transaction_hash,
     createdAt: record.created_at,
     successful: record.transaction_successful !== false,
+    detail: describeOperation(record),
   };
 }
 

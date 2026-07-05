@@ -744,6 +744,9 @@ export default function App() {
                                   <span className="op-pill op-pill--failed">failed</span>
                                 )}
                               </p>
+                              {op.detail && (
+                                <p className="timeline__detail">{op.detail}</p>
+                              )}
                               <p className="timeline__meta">
                                 {new Date(op.createdAt).toLocaleString()} ·{" "}
                                 <a

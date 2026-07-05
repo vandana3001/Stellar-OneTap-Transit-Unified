@@ -800,6 +800,13 @@ select {
   align-items: center;
 }
 
+.timeline__detail {
+  margin: 3px 0 0;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+}
+
 .timeline__meta {
   margin: 2px 0 0;
   font-size: 0.76rem;
