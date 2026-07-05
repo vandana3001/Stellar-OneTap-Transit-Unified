@@ -222,8 +222,6 @@ export default function App() {
   const primaryTapDisabled = tripOpen ? tapOutDisabled : tapInDisabled;
   const handlePrimaryTap = tripOpen ? handleTapOut : handleTapIn;
 
-  const pageTitle = NAV.find((n) => n.id === activeTab)?.label || "";
-
   return (
     <div className="shell">
       <aside className="sidebar">
@@ -241,6 +239,7 @@ export default function App() {
             return (
               <button
                 key={item.id}
+                data-tab={item.id}
                 className={"nav-item" + (activeTab === item.id ? " nav-item--active" : "")}
                 onClick={() => setActiveTab(item.id)}
               >
@@ -258,9 +257,16 @@ export default function App() {
 
       <div className="content">
         <header className="topbar">
-          <div>
+          <div className="topbar__titlewrap">
             <p className="topbar__eyebrow">Stellar Transit Unified</p>
-            <h1 className="topbar__title">{pageTitle}</h1>
+            <h1 className="topbar__title">
+              <img
+                className="stellar-logo"
+                src="/stellar-logo.png"
+                alt="Stellar"
+                onError={(e) => { e.currentTarget.style.display = "none"; }}
+              />
+            </h1>
           </div>
 
           <button
@@ -270,7 +276,6 @@ export default function App() {
           >
             {publicKey ? (
               <>
-                <span className="wallet-chip__dot" />
                 <span className="wallet-chip__addr">{shorten(publicKey)}</span>
                 <span className="wallet-chip__bal">
                   {balance === null ? "…" : `${balance} FARE`}
@@ -282,10 +287,13 @@ export default function App() {
           </button>
         </header>
 
+        <div className="section-accent" data-tab={activeTab} />
+
         <nav className="mobile-nav" aria-label="Sections (compact)">
           {NAV.map((item) => (
             <button
               key={item.id}
+              data-tab={item.id}
               className={"mobile-nav__item" + (activeTab === item.id ? " mobile-nav__item--active" : "")}
               onClick={() => setActiveTab(item.id)}
             >
@@ -344,7 +352,6 @@ export default function App() {
                       onClick={handlePrimaryTap}
                       disabled={primaryTapDisabled}
                     >
-                      <TapIcon pulsing={tapStatus === STATUS.LOADING} />
                       {tapStatus === STATUS.LOADING
                         ? tripOpen ? "Tapping out…" : "Tapping in…"
                         : tripOpen ? `Tap out at ${exitStation}` : `Tap in at ${entryStation}`}
@@ -668,22 +675,6 @@ function RouteMark() {
       />
       <circle cx="4" cy="22" r="2.4" fill="currentColor" />
       <circle cx="26" cy="8" r="2.4" fill="currentColor" />
-    </svg>
-  );
-}
-
-function TapIcon({ pulsing }) {
-  return (
-    <svg
-      className={"tap-icon" + (pulsing ? " tap-icon--pulsing" : "")}
-      width="18"
-      height="18"
-      viewBox="0 0 18 18"
-      aria-hidden="true"
-    >
-      <circle cx="9" cy="9" r="3" fill="currentColor" />
-      <circle cx="9" cy="9" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.4" opacity="0.55" />
-      <circle cx="9" cy="9" r="8.4" fill="none" stroke="currentColor" strokeWidth="1.2" opacity="0.3" />
     </svg>
   );
 }
