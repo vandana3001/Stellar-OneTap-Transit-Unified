@@ -1,9 +1,10 @@
 /* ============================================================
-   Stellar Transit Unified — light theme
+   Stellar Transit Unified — full webapp layout
    Tokens
    ============================================================ */
 :root {
   --bg: #ffffff;
+  --bg-page: #fafafb;
   --surface: #f7f8fa;
   --surface-raised: #ffffff;
   --border: #e6e8ec;
@@ -31,6 +32,8 @@
   --radius-md: 12px;
   --radius-sm: 8px;
 
+  --sidebar-w: 232px;
+
   --font-display: "Space Grotesk", "Segoe UI", sans-serif;
   --font-body: "Inter", "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
@@ -43,34 +46,37 @@
 body {
   margin: 0;
   font-family: var(--font-body);
-  background: var(--bg);
+  background: var(--bg-page);
   color: var(--ink-soft);
 }
 
 /* ============================================================
-   Shell
+   Shell: sidebar + content
    ============================================================ */
-.app {
+.shell {
+  display: flex;
   min-height: 100vh;
+}
+
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--surface-raised);
+  border-right: 1px solid var(--border);
+  padding: 26px 18px;
   display: flex;
   flex-direction: column;
-  padding: 20px 16px 40px;
-  max-width: 480px;
-  margin: 0 auto;
+  gap: 32px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
 }
 
-.app__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 16px;
-}
-
-.brand {
+.sidebar__brand {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 0 6px;
 }
 
 .route-mark {
@@ -81,7 +87,7 @@ body {
 .brand__name {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 1.05rem;
+  font-size: 1rem;
   color: var(--ink);
   margin: 0;
   letter-spacing: -0.01em;
@@ -89,20 +95,104 @@ body {
 
 .brand__tag {
   margin: 1px 0 0;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--muted);
+}
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  background: transparent;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  text-align: left;
+  border-left: 2px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nav-item:hover {
+  background: var(--surface);
+}
+
+.nav-item--active {
+  background: var(--go-soft);
+  color: var(--go);
+  border-left-color: var(--go);
+}
+
+.sidebar__footer {
+  margin-top: auto;
+}
+
+.network-pill {
+  display: inline-flex;
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+/* ============================================================
+   Content column
+   ============================================================ */
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 40px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.topbar__eyebrow {
+  margin: 0 0 2px;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.topbar__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--ink);
+  letter-spacing: -0.01em;
 }
 
 .wallet-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--muted);
   border-radius: 999px;
-  padding: 7px 12px;
-  font-size: 0.75rem;
+  padding: 9px 16px;
+  font-size: 0.8rem;
   font-family: var(--font-mono);
   cursor: pointer;
   white-space: nowrap;
@@ -127,70 +217,62 @@ body {
   font-weight: 600;
 }
 
+.mobile-nav {
+  display: none;
+}
+
 /* ============================================================
-   Tabs
+   Page area + grids
    ============================================================ */
-.tabs {
-  display: flex;
-  gap: 4px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 4px;
+.page {
+  padding: 32px 40px 64px;
+  max-width: 1180px;
+  width: 100%;
 }
 
-.tabs__item {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 9px 6px;
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--muted);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 24px;
+  align-items: start;
 }
 
-.tabs__item--active {
-  background: var(--surface-raised);
-  color: var(--ink);
-  box-shadow: var(--shadow-card);
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  align-items: start;
 }
 
 /* ============================================================
    Panels
    ============================================================ */
-.app__main {
-  margin-top: 16px;
-}
-
-.panel {
+.card-panel {
   background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 26px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+  box-shadow: var(--shadow-card);
 }
 
 .panel__title {
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   color: var(--ink);
   margin: 0;
 }
 
 .panel__subtitle {
-  margin: -8px 0 0;
+  margin: -10px 0 0;
   font-size: 0.85rem;
   color: var(--muted);
 }
 
 .panel__note {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--muted);
   margin: 0;
 }
@@ -217,6 +299,60 @@ body {
 }
 
 /* ============================================================
+   Stat column (Tap card page, right rail)
+   ============================================================ */
+.stat-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stat-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: var(--shadow-card);
+}
+
+.stat-card__label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-card__value {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.stat-card__value--go {
+  color: var(--go);
+}
+
+.stat-card__unit {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.stat-card__hint {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.stat-card__link {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--line);
+}
+
+/* ============================================================
    Transit card — signature element
    ============================================================ */
 .transit-card {
@@ -225,10 +361,10 @@ body {
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--surface);
-  padding: 20px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .transit-card__pattern {
@@ -252,19 +388,19 @@ body {
 .transit-card__row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   position: relative;
 }
 
 .transit-card__monogram {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
   background: var(--ink);
   color: #fff;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -274,22 +410,22 @@ body {
 .transit-card__operator {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .transit-card__operator-label {
   font-family: var(--font-display);
   font-weight: 500;
   color: var(--ink);
-  font-size: 0.95rem;
+  font-size: 1.05rem;
 }
 
 .status-pill {
   display: inline-flex;
   align-items: center;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: 999px;
   width: fit-content;
 }
@@ -308,8 +444,8 @@ body {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 0;
+  gap: 18px;
+  padding: 14px 0;
   border-top: 1px dashed var(--border);
   border-bottom: 1px dashed var(--border);
 }
@@ -321,7 +457,7 @@ body {
 }
 
 .transit-card__station-label {
-  font-size: 0.65rem;
+  font-size: 0.66rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted);
@@ -329,13 +465,13 @@ body {
 
 .transit-card__station-name {
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--ink);
 }
 
 .transit-card__arrow {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .transit-card__footer {
@@ -344,7 +480,7 @@ body {
   align-items: center;
   justify-content: space-between;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--muted);
 }
 
@@ -354,11 +490,103 @@ body {
 }
 
 /* ============================================================
+   Route panel (Book trip page, right rail)
+   ============================================================ */
+.route-panel {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+}
+
+.route-panel__title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--ink);
+  margin: 0 0 18px;
+}
+
+.route-line {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 4px;
+  position: relative;
+}
+
+.route-line::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--border);
+}
+
+.route-line__stop {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+}
+
+.route-line__dot {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.route-line__stop--entry .route-line__dot {
+  border-color: var(--go);
+  background: var(--go);
+}
+
+.route-line__stop--exit .route-line__dot {
+  border-color: var(--stop);
+  background: var(--stop);
+}
+
+.route-line__name {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.route-line__stop--entry .route-line__name,
+.route-line__stop--exit .route-line__name {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.route-line__tag {
+  margin-left: auto;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.route-line__tag--entry {
+  background: var(--go-soft);
+  color: var(--go);
+}
+
+.route-line__tag--exit {
+  background: var(--stop-border);
+  color: var(--stop);
+}
+
+/* ============================================================
    Buttons
    ============================================================ */
 .btn {
-  width: 100%;
-  padding: 14px;
+  padding: 14px 20px;
   border: none;
   border-radius: var(--radius-md);
   font-family: var(--font-body);
@@ -380,9 +608,11 @@ body {
 .btn--primary {
   background: var(--ink);
   color: #fff;
+  align-self: flex-start;
 }
 
 .btn--tap {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -422,7 +652,7 @@ body {
   flex-direction: column;
   font-size: 0.78rem;
   color: var(--muted);
-  gap: 5px;
+  gap: 6px;
   flex: 1;
 }
 
@@ -432,11 +662,11 @@ body {
 
 .field-row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 select {
-  padding: 10px;
+  padding: 11px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--surface);
@@ -446,12 +676,12 @@ select {
 }
 
 /* ============================================================
-   Wallet detail rows
+   Wallet detail rows + big numbers
    ============================================================ */
 .wallet-detail {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .wallet-detail__row {
@@ -459,7 +689,7 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  font-size: 0.85rem;
+  font-size: 0.87rem;
 }
 
 .wallet-detail__label {
@@ -470,35 +700,108 @@ select {
 .wallet-detail__row code {
   background: var(--surface);
   border: 1px solid var(--border);
-  padding: 4px 8px;
+  padding: 5px 9px;
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   word-break: break-all;
   text-align: right;
+}
+
+.big-number {
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  color: var(--go);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.big-number__unit {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* ============================================================
+   Timeline (Activity page)
+   ============================================================ */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timeline__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.timeline__item:last-child {
+  border-bottom: none;
+}
+
+.timeline__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.timeline__dot--go {
+  background: var(--go);
+}
+
+.timeline__dot--stop {
+  background: var(--stop);
+}
+
+.timeline__title {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+
+.timeline__meta {
+  margin: 2px 0 0;
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.timeline__meta a {
+  color: var(--line);
+  font-family: var(--font-mono);
 }
 
 /* ============================================================
    Status text
    ============================================================ */
 .hint {
-  font-size: 0.82rem;
+  font-size: 0.83rem;
   color: var(--warn);
   background: var(--warn-soft);
   border-radius: var(--radius-sm);
-  padding: 8px 10px;
+  padding: 9px 12px;
   margin: 0;
 }
 
 .error {
   color: var(--stop);
-  font-size: 0.82rem;
+  font-size: 0.83rem;
   margin: 0;
 }
 
 .success {
   color: var(--go);
-  font-size: 0.82rem;
+  font-size: 0.83rem;
   margin: 0;
   word-break: break-all;
 }
@@ -519,11 +822,49 @@ select:focus-visible {
 }
 
 /* ============================================================
-   Responsive
+   Responsive: collapse sidebar to a top nav below ~960px
    ============================================================ */
-@media (min-width: 600px) {
-  .app {
-    max-width: 560px;
-    padding: 32px 32px 48px;
+@media (max-width: 960px) {
+  .sidebar {
+    display: none;
+  }
+
+  .mobile-nav {
+    display: flex;
+    gap: 4px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    background: var(--bg);
+  }
+
+  .mobile-nav__item {
+    flex-shrink: 0;
+    border: none;
+    background: var(--surface);
+    color: var(--muted);
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .mobile-nav__item--active {
+    background: var(--go-soft);
+    color: var(--go);
+  }
+
+  .topbar {
+    padding: 18px 20px;
+  }
+
+  .page {
+    padding: 24px 20px 48px;
+  }
+
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
   }
 }
