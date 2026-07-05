@@ -1,0 +1,19 @@
+[package]
+name = "transit-controller"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+operator-registry = { path = "../operator-registry", features = ["testutils"] }
+fare-token = { path = "../fare-token", features = ["testutils"] }
+
+[features]
+testutils = ["soroban-sdk/testutils"]

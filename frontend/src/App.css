@@ -1,0 +1,149 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0b1220;
+  color: #e8edf5;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.app__header {
+  text-align: center;
+  padding: 24px 0 8px;
+}
+
+.app__header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  background: linear-gradient(90deg, #7dd3fc, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.tagline {
+  color: #93a3bd;
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+}
+
+.app__main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.card {
+  background: #131c2e;
+  border: 1px solid #22304a;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.card h2 {
+  font-size: 1rem;
+  margin: 0 0 12px;
+  color: #cdd8ee;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+  color: #93a3bd;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #2c3b58;
+  background: #0e1728;
+  color: #e8edf5;
+  font-size: 1rem;
+}
+
+.btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: #7dd3fc;
+  color: #0b1220;
+}
+
+.tap-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn--tap-in {
+  background: #34d399;
+  color: #0b1220;
+}
+
+.btn--tap-out {
+  background: #f472b6;
+  color: #0b1220;
+}
+
+.connected code {
+  background: #0e1728;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.hint {
+  font-size: 0.85rem;
+  color: #facc15;
+}
+
+.error {
+  color: #f87171;
+  font-size: 0.85rem;
+  margin-top: 10px;
+}
+
+.success {
+  color: #34d399;
+  font-size: 0.85rem;
+  margin-top: 10px;
+  word-break: break-all;
+}
+
+/* Larger screens: allow the card layout a bit more breathing room */
+@media (min-width: 600px) {
+  .app {
+    max-width: 560px;
+    padding: 32px;
+  }
+  .app__header h1 {
+    font-size: 2rem;
+  }
+}

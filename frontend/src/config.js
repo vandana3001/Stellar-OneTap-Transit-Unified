@@ -1,0 +1,26 @@
+// Fill these in after running the deployment steps in README.md
+export const NETWORK = {
+  networkPassphrase: "Test SDF Network ; September 2015",
+  rpcUrl: "https://soroban-testnet.stellar.org",
+  horizonUrl: "https://horizon-testnet.stellar.org",
+};
+
+export const CONTRACTS = {
+  operatorRegistry: import.meta.env.VITE_REGISTRY_CONTRACT_ID || "CBLJAOBD74WG75D5TOCVEIHQ7CTVU7DCJEEA5YGVFQ6MMCMFI6ME72OZ",
+  fareToken: import.meta.env.VITE_TOKEN_CONTRACT_ID || "CDZNJOQUQHITXCVO3XYKEUG5PSC5H56DFXNUB5VQT7PYVMG6N4QX3E35",
+  transitController: import.meta.env.VITE_CONTROLLER_CONTRACT_ID || "CATTPBDRTCJTKB4YWT3CCCBGG2SI7QQ2CCOQTJY5WKKGKQEEGJM7SCRR",
+};
+
+// Demo operators/stations seeded via the `register_operator` / `set_fare`
+// admin calls described in README.md - keep in sync with your on-chain data.
+export const OPERATORS = [
+  { id: "DL_METRO", label: "Delhi Metro" },
+  { id: "MUM_METRO", label: "Mumbai Metro" },
+  { id: "BEST_BUS", label: "BEST Bus" },
+];
+
+export const STATIONS = {
+  DL_METRO: ["RAJIV_CHK", "HUDA_CITY", "KASHMERE_G", "NEW_DELHI"],
+  MUM_METRO: ["ANDHERI", "CHURCHGT", "GHATKOPAR"],
+  BEST_BUS: ["DADAR", "BANDRA", "COLABA"],
+};
