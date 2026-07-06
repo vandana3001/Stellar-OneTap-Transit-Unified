@@ -52,8 +52,7 @@ impl FareToken {
         Ok(())
     }
 
-    /// Mint new FARE tokens - e.g. triggered off-chain when a rider
-    /// tops up via UPI through the anchor. Admin-only.
+    
     pub fn mint(env: Env, to: Address, amount: i128) -> Result<(), TokenError> {
         if amount <= 0 {
             return Err(TokenError::NegativeAmount);
@@ -84,11 +83,7 @@ impl FareToken {
         Ok(())
     }
 
-    /// Self-service starter balance for new riders. Anyone can claim
-    /// this for their OWN address (require_auth is the claimer, not
-    /// the admin), exactly once. This is testnet play money only -
-    /// it exists purely so a new user can try the app without needing
-    /// the admin to manually mint to them via CLI first.
+    
     pub fn claim_faucet(env: Env, to: Address) -> Result<(), TokenError> {
         to.require_auth();
 
@@ -123,9 +118,7 @@ impl FareToken {
         Ok(())
     }
 
-    /// Whether an address has already claimed the faucet - lets the
-    /// frontend check before attempting a claim, so it doesn't need
-    /// to rely on catching an error to know.
+  
     pub fn has_claimed_faucet(env: Env, id: Address) -> bool {
         env.storage()
             .persistent()
@@ -139,12 +132,7 @@ impl FareToken {
             .unwrap_or(0)
     }
 
-    /// Standard peer-to-peer / contract-to-account transfer. Requires
-    /// the `from` address to have authorized the invocation - when
-    /// called cross-contract from transit-controller, this auth was
-    /// already granted by the rider's transaction signature and
-    /// Soroban's auth framework verifies it satisfies this exact
-    /// sub-invocation (from, amount, contract).
+   
     pub fn transfer(env: Env, from: Address, to: Address, amount: i128) -> Result<(), TokenError> {
         if amount <= 0 {
             return Err(TokenError::NegativeAmount);
@@ -156,8 +144,6 @@ impl FareToken {
         Ok(())
     }
 
-    /// Burn tokens out of circulation entirely (e.g. a ticket redemption
-    /// that doesn't route to an operator wallet, or reconciliation).
     pub fn burn(env: Env, from: Address, amount: i128) -> Result<(), TokenError> {
         if amount <= 0 {
             return Err(TokenError::NegativeAmount);

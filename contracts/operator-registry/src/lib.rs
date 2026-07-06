@@ -16,8 +16,8 @@ pub struct Operator {
 #[contracttype]
 pub enum DataKey {
     Admin,
-    Operator(Symbol),                 // operator_id -> Operator
-    Fare(Symbol, Symbol, Symbol),      // (operator_id, from_station, to_station) -> i128
+    Operator(Symbol),                 
+    Fare(Symbol, Symbol, Symbol),      
 }
 
 #[contracterror]
@@ -37,9 +37,7 @@ pub struct OperatorRegistry;
 
 #[contractimpl]
 impl OperatorRegistry {
-    /// One-time setup. `admin` is the only account allowed to onboard
-    /// operators or edit fares (in production this would be a DAO /
-    /// multi-sig account, not a single EOA).
+    
     pub fn initialize(env: Env, admin: Address) -> Result<(), RegistryError> {
         if env.storage().instance().has(&DataKey::Admin) {
             return Err(RegistryError::AlreadyInitialized);
@@ -49,10 +47,7 @@ impl OperatorRegistry {
         Ok(())
     }
 
-    /// Onboard a new operator (metro line, bus operator, toll plaza...).
-    /// `max_fare` is the amount held from the rider at tap-in, before the
-    /// real fare is known (mirrors how real metro systems place a
-    /// worst-case hold and refund the difference at exit).
+    
     pub fn register_operator(
         env: Env,
         operator_id: Symbol,
@@ -83,9 +78,7 @@ impl OperatorRegistry {
         Ok(())
     }
 
-    /// Set (or overwrite) the fare for a specific station-pair on a given
-    /// operator. Direction matters (from -> to), matching how real transit
-    /// fares are not always symmetric.
+    
     pub fn set_fare(
         env: Env,
         operator_id: Symbol,
@@ -94,7 +87,7 @@ impl OperatorRegistry {
         fare: i128,
     ) -> Result<(), RegistryError> {
         Self::require_admin(&env)?;
-        Self::get_operator_internal(&env, &operator_id)?; // ensures operator exists
+        Self::get_operator_internal(&env, &operator_id)?; 
         if fare < 0 {
             panic!("fare cannot be negative");
         }
@@ -112,8 +105,7 @@ impl OperatorRegistry {
         Ok(())
     }
 
-    /// Toggle an operator active/inactive (e.g. suspend a bus operator
-    /// under investigation without deleting its historical data).
+    
     pub fn set_active(env: Env, operator_id: Symbol, active: bool) -> Result<(), RegistryError> {
         Self::require_admin(&env)?;
         let mut op = Self::get_operator_internal(&env, &operator_id)?;
@@ -128,10 +120,6 @@ impl OperatorRegistry {
         Ok(())
     }
 
-    // ---------------------------------------------------------------
-    // Read-only getters — these are the functions transit-controller
-    // calls cross-contract on every tap.
-    // ---------------------------------------------------------------
 
     pub fn get_operator(env: Env, operator_id: Symbol) -> Result<Operator, RegistryError> {
         Self::get_operator_internal(&env, &operator_id)
@@ -152,10 +140,7 @@ impl OperatorRegistry {
         Ok(Self::get_operator_internal(&env, &operator_id)?.wallet)
     }
 
-    /// Real fare for a specific station-pair. Falls back to `max_fare`
-    /// if no specific fare has been configured yet, so a newly onboarded
-    /// operator is usable immediately (flat-fare mode) before a full
-    /// zone matrix is entered.
+    
     pub fn get_fare(
         env: Env,
         operator_id: Symbol,
@@ -167,9 +152,6 @@ impl OperatorRegistry {
         Ok(env.storage().persistent().get(&key).unwrap_or(op.max_fare))
     }
 
-    // ---------------------------------------------------------------
-    // Internal helpers
-    // ---------------------------------------------------------------
 
     fn require_admin(env: &Env) -> Result<(), RegistryError> {
         let admin: Address = env

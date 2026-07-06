@@ -2,10 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-// Mock the entire stellar.js module so tests never touch Freighter,
-// Soroban RPC, or Horizon - just the UI's reaction to what those calls
-// resolve/reject with. This also means these tests never make real
-// network calls, so they're fast and deterministic.
+
 vi.mock("../stellar", () => ({
   connectWallet: vi.fn(),
   invokeContract: vi.fn(),
@@ -17,35 +14,20 @@ vi.mock("../stellar", () => ({
   scSymbol: vi.fn((v) => v),
   scAddress: vi.fn((v) => v),
   getAccountHistory: vi.fn(),
-  streamAccountHistory: vi.fn(() => vi.fn()), // returns an unsubscribe fn
+  streamAccountHistory: vi.fn(() => vi.fn()), 
   operationLabel: vi.fn((type) => type),
 }));
 
 import App from "../App";
 import * as stellar from "../stellar";
 
-// A fixed, checksum-valid Stellar public key (StrKey-encoded) - not a
-// real/random keypair, just a deterministic constant. scAddress() /
-// Address parsing in the real SDK only validates the StrKey checksum,
-// it never needs the payload to be a genuine Ed25519 curve point, so a
-// hardcoded value is enough and avoids calling Keypair.random() in
-// jsdom, which throws ("expected Uint8Array of length 32, got
-// type=object") because the random bytes it generates come from a
-// different global realm than jsdom's Uint8Array.
+
 const PUBLIC_KEY = "GAAACAQDAQCQMBYIBEFAWDANBYHRAEISCMKBKFQXDAMRUGY4DUPB7JZX";
 
-// Mirrors the app's own shorten() helper (App.jsx is not exported, so we
-// reproduce the same slicing here) - lets tests assert against the
-// *actual* connected key instead of a hardcoded value that would only
-// match by coincidence, since PUBLIC_KEY is freshly randomized above.
+
 const SHORT_KEY = PUBLIC_KEY.slice(0, 6) + "..." + PUBLIC_KEY.slice(-6);
 
-// The nav renders twice in the DOM (a full sidebar for desktop, a
-// compact pill nav for mobile - CSS media queries hide one or the
-// other, but jsdom has no viewport so both are present). Every click on
-// a nav label MUST go through this helper (or screen.getAllByText),
-// never screen.getByText(label) directly, or the query will throw on
-// "multiple elements found".
+
 async function clickNav(user, label) {
   const [first] = screen.getAllByText(label);
   await user.click(first);
@@ -59,12 +41,11 @@ async function connectWalletSuccessfully(user) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Sensible defaults so every test doesn't have to stub every call;
-  // individual tests override these to exercise error/loading paths.
+ 
   stellar.isFreighterAvailable.mockResolvedValue(true);
   stellar.getOpenTrip.mockResolvedValue(null);
   stellar.getBalance.mockResolvedValue(0);
-  stellar.hasClaimedFaucet.mockResolvedValue(true); // avoid auto-faucet noise
+  stellar.hasClaimedFaucet.mockResolvedValue(true); 
   stellar.getAccountHistory.mockResolvedValue([]);
 });
 
@@ -72,15 +53,11 @@ describe("initial render", () => {
   it("shows the Book trip tab by default and all nav items", async () => {
     render(<App />);
     expect(screen.getByRole("heading", { name: "Book trip" })).toBeInTheDocument();
-    // Each label appears at least once (sidebar nav + mobile nav, and
-    // for "Book trip" also the panel heading) - use getAllByText, since
-    // getByText throws the moment there's more than one match.
+    
     ["Book trip", "Tap card", "Wallet", "Activity", "Chain history"].forEach((label) => {
       expect(screen.getAllByText(label).length).toBeGreaterThan(0);
     });
-    // Let the async Freighter-detection effect settle before the test
-    // ends, otherwise its state update lands after this test has
-    // already finished and React logs an act(...) warning.
+    
     await waitFor(() => expect(stellar.isFreighterAvailable).toHaveBeenCalled());
   });
 
@@ -105,10 +82,7 @@ describe("wallet connection", () => {
 
     expect(screen.getByRole("button", { name: /connecting/i })).toBeDisabled();
     resolveConnect(PUBLIC_KEY);
-    // Matches both the shortened wallet-chip address in the header and
-    // the full address in the Wallet tab's <code> block - either is
-    // proof the connect resolved, so assert at least one match rather
-    // than a single getByText (which throws on >1 match).
+    
     await waitFor(() =>
       expect(screen.getAllByText(new RegExp(SHORT_KEY.slice(0, 6))).length).toBeGreaterThan(0)
     );

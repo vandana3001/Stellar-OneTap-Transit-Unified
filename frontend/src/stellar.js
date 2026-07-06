@@ -16,11 +16,7 @@ import { NETWORK, CONTRACTS, OPERATORS } from "./config";
 
 const OPERATOR_LABELS = Object.fromEntries(OPERATORS.map((op) => [op.id, op.label]));
 
-/**
- * Checks whether Freighter is installed AND actually reachable, by
- * round-tripping a real message to the extension rather than just
- * checking for the presence of an injected object.
- */
+
 export async function isFreighterAvailable() {
   try {
     const { isConnected: connected } = await isConnected();
@@ -30,11 +26,7 @@ export async function isFreighterAvailable() {
   }
 }
 
-/**
- * Connects to Freighter and returns the user's public key.
- * Throws a descriptive Error (never a raw SDK error) so the UI layer
- * can render it directly.
- */
+
 export async function connectWallet() {
   try {
     const { address, error } = await requestAccess();
@@ -46,14 +38,7 @@ export async function connectWallet() {
   }
 }
 
-/**
- * Builds, simulates, signs (via Freighter), and submits a single
- * contract invocation. Returns the transaction hash on success.
- *
- * This function intentionally does ONE thing end to end so every
- * caller in the UI gets identical error handling and loading
- * semantics - no duplicated try/catch scattered across components.
- */
+
 export async function invokeContract({ contractId, method, args, sourcePublicKey }) {
   const server = new SorobanRpc.Server(NETWORK.rpcUrl);
 
@@ -113,8 +98,6 @@ export async function invokeContract({ contractId, method, args, sourcePublicKey
     throw new Error(`Transaction rejected: ${extractContractError(sendResult)}`);
   }
 
-  // Poll until the transaction is confirmed, so the UI can show a
-  // single, accurate "confirmed"/"failed" state rather than guessing.
   let getResult = await server.getTransaction(sendResult.hash);
   let attempts = 0;
   while (getResult.status === "NOT_FOUND" && attempts < 15) {
@@ -133,12 +116,7 @@ export async function invokeContract({ contractId, method, args, sourcePublicKey
   return { hash: sendResult.hash, result: getResult };
 }
 
-/**
- * Runs a read-only simulation of a contract call and decodes the
- * result to a plain JS value. No signing, no wallet popup, no fee.
- * Returns null if the account doesn't exist yet or simulation fails,
- * since these are background sync checks, not user-initiated actions.
- */
+
 async function simulateRead(contractId, method, args, sourcePublicKey) {
   const server = new SorobanRpc.Server(NETWORK.rpcUrl);
 
@@ -175,16 +153,7 @@ async function simulateRead(contractId, method, args, sourcePublicKey) {
   return scValToNative(retval);
 }
 
-/**
- * Reads the rider's current open trip directly from transit_controller.
- * Returns null if there's no open trip, or a plain JS object:
- *   { operatorId, entryStation, holdAmount, entryLedgerTs }
- *
- * This is what keeps the UI's "Tap In"/"Tap Out" button state honest
- * against actual chain state, instead of trusting in-memory React
- * state alone - which drifts out of sync any time a trip was opened
- * from a different session, device, or the CLI.
- */
+
 export async function getOpenTrip(sourcePublicKey) {
   const decoded = await simulateRead(
     CONTRACTS.transitController,
@@ -203,11 +172,7 @@ export async function getOpenTrip(sourcePublicKey) {
   };
 }
 
-/**
- * Reads the rider's current FARE balance. Returns 0 on any failure
- * (e.g. brand new unfunded account) rather than throwing, since this
- * is used for a background "should we offer the faucet" check.
- */
+
 export async function getBalance(sourcePublicKey) {
   const decoded = await simulateRead(
     CONTRACTS.fareToken,
@@ -219,9 +184,7 @@ export async function getBalance(sourcePublicKey) {
   return Number(decoded);
 }
 
-/**
- * Whether this address has already claimed the one-time faucet.
- */
+
 export async function hasClaimedFaucet(sourcePublicKey) {
   const decoded = await simulateRead(
     CONTRACTS.fareToken,
@@ -232,10 +195,7 @@ export async function hasClaimedFaucet(sourcePublicKey) {
   return !!decoded;
 }
 
-/**
- * Claims the one-time starter FARE balance for the connected wallet.
- * The rider signs for themselves - no admin/backend involvement.
- */
+
 export async function claimFaucet(sourcePublicKey) {
   return invokeContract({
     contractId: CONTRACTS.fareToken,
@@ -245,14 +205,7 @@ export async function claimFaucet(sourcePublicKey) {
   });
 }
 
-/**
- * Decodes the base64 XDR ScVal parameters Horizon returns for an
- * invoke_host_function operation into plain JS values. Horizon lists
- * these in call order: the invoked contract address, the function
- * name (as a Symbol), then each argument passed to that function -
- * exactly what's needed to reconstruct a human-readable "tap_in at
- * RAJIV_CHK" style summary without a second RPC round trip.
- */
+
 function decodeInvocationParams(parameters) {
   if (!Array.isArray(parameters)) return null;
   try {
@@ -262,14 +215,7 @@ function decodeInvocationParams(parameters) {
   }
 }
 
-/**
- * Turns a raw Horizon operation record into a short, rider-facing
- * description of what actually happened on-chain - e.g. "Tap in on
- * Delhi Metro at RAJIV_CHK" instead of just "Contract call". Returns
- * null (rather than throwing) if the operation isn't one of ours or
- * decoding fails for any reason, so the UI can just fall back to the
- * generic operation label.
- */
+
 function describeOperation(record) {
   if (record.type !== "invoke_host_function") return null;
 
@@ -281,12 +227,12 @@ function describeOperation(record) {
 
   switch (fn) {
     case "tap_in": {
-      const [, operatorId, station] = args; // args[0] is the rider address
+      const [, operatorId, station] = args; 
       const label = OPERATOR_LABELS[operatorId] || operatorId;
       return station ? `Tap in on ${label} at ${station}` : `Tap in on ${label}`;
     }
     case "tap_out": {
-      const [, station] = args; // args[0] is the rider address
+      const [, station] = args; 
       return station ? `Tap out at ${station}` : "Tap out";
     }
     case "claim_faucet":
@@ -296,13 +242,7 @@ function describeOperation(record) {
   }
 }
 
-/**
- * Fetches the most recent operations for an account directly from
- * Horizon (not Soroban RPC) - this gives real on-chain history
- * including contract invocations, payments, account creation, etc.
- * Returns [] for a brand-new/unfunded account (404) instead of
- * throwing, since that's an expected state, not an error.
- */
+
 export async function getAccountHistory(sourcePublicKey, limit = 20) {
   const url =
     `${NETWORK.horizonUrl}/accounts/${sourcePublicKey}/operations` +
@@ -325,16 +265,7 @@ export async function getAccountHistory(sourcePublicKey, limit = 20) {
   return records.map(mapOperationRecord);
 }
 
-/**
- * Opens a live Horizon SSE stream for new operations on this account,
- * starting from "now". EventSource automatically sends
- * `Accept: text/event-stream`, which is what makes Horizon serve a
- * stream instead of a single JSON page - no extra config needed.
- *
- * Call the returned function to unsubscribe (e.g. on wallet disconnect
- * or component unmount) - always clean this up or the browser will
- * keep the connection open indefinitely.
- */
+
 export function streamAccountHistory(sourcePublicKey, { onOperation, onError } = {}) {
   const url =
     `${NETWORK.horizonUrl}/accounts/${sourcePublicKey}/operations` +
@@ -345,10 +276,10 @@ export function streamAccountHistory(sourcePublicKey, { onOperation, onError } =
   es.onmessage = (evt) => {
     try {
       const record = JSON.parse(evt.data);
-      if (!record?.id) return; // Horizon's initial keepalive frame has no real record
+      if (!record?.id) return; 
       onOperation?.(mapOperationRecord(record));
     } catch {
-      // ignore malformed/keepalive frames
+      
     }
   };
 
@@ -359,14 +290,10 @@ export function streamAccountHistory(sourcePublicKey, { onOperation, onError } =
   return () => es.close();
 }
 
-/**
- * Normalizes a raw Horizon operation record into the small shape the
- * UI actually needs, so components never touch Horizon's raw fields.
- */
 function mapOperationRecord(record) {
   return {
     id: record.id,
-    type: record.type, // e.g. "invoke_host_function", "payment", "create_account"
+    type: record.type, 
     txHash: record.transaction_hash,
     createdAt: record.created_at,
     successful: record.transaction_successful !== false,
@@ -374,9 +301,7 @@ function mapOperationRecord(record) {
   };
 }
 
-/**
- * Human-friendly label for a Horizon operation type.
- */
+
 export function operationLabel(type) {
   switch (type) {
     case "invoke_host_function":

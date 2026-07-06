@@ -1,7 +1,4 @@
-/* ============================================================
-   Stellar Transit Unified — full webapp layout
-   Tokens
-   ============================================================ */
+
 :root {
   --bg: #ffffff;
   --bg-page: #eef0f3;
@@ -53,9 +50,7 @@ body {
   color: var(--ink-soft);
 }
 
-/* ============================================================
-   Shell: sidebar + content
-   ============================================================ */
+
 .shell {
   display: flex;
   min-height: 100vh;
@@ -180,9 +175,7 @@ body {
   padding: 4px 10px;
 }
 
-/* ============================================================
-   Content column
-   ============================================================ */
+
 .content {
   flex: 1;
   min-width: 0;
@@ -286,9 +279,7 @@ body {
   display: none;
 }
 
-/* ============================================================
-   Page area + grids
-   ============================================================ */
+
 .page {
   padding: 32px 40px 64px;
   max-width: 1180px;
@@ -309,9 +300,7 @@ body {
   align-items: start;
 }
 
-/* ============================================================
-   Panels
-   ============================================================ */
+
 .card-panel {
   background: var(--surface-raised);
   border: 1px solid var(--border);
@@ -363,9 +352,7 @@ body {
   font-size: 0.9rem;
 }
 
-/* ============================================================
-   Stat column (Tap card / Chain history pages, right rail)
-   ============================================================ */
+
 .stat-column {
   display: flex;
   flex-direction: column;
@@ -417,9 +404,7 @@ body {
   color: var(--line);
 }
 
-/* ============================================================
-   Transit card — signature element
-   ============================================================ */
+
 .transit-card {
   position: relative;
   overflow: hidden;
@@ -554,9 +539,7 @@ body {
   font-weight: 600;
 }
 
-/* ============================================================
-   Route panel (Book trip page, right rail)
-   ============================================================ */
+
 .route-panel {
   background: var(--surface-raised);
   border: 1px solid var(--border);
@@ -647,9 +630,7 @@ body {
   color: var(--stop);
 }
 
-/* ============================================================
-   Buttons
-   ============================================================ */
+
 .btn {
   padding: 14px 20px;
   border: none;
@@ -694,9 +675,7 @@ body {
   color: #fff;
 }
 
-/* ============================================================
-   Forms
-   ============================================================ */
+
 .field {
   display: flex;
   flex-direction: column;
@@ -725,9 +704,7 @@ select {
   font-family: var(--font-body);
 }
 
-/* ============================================================
-   Wallet detail rows + big numbers
-   ============================================================ */
+
 .wallet-detail {
   display: flex;
   flex-direction: column;
@@ -774,9 +751,7 @@ select {
   color: var(--muted);
 }
 
-/* ============================================================
-   Timeline (Activity + Chain history pages)
-   ============================================================ */
+
 .timeline {
   list-style: none;
   margin: 0;
@@ -825,9 +800,7 @@ select {
   font-family: var(--font-mono);
 }
 
-/* ============================================================
-   Chain history page — live badge + failed-operation pill
-   ============================================================ */
+
 .history-panel__heading {
   display: flex;
   align-items: center;
@@ -874,9 +847,7 @@ select {
   color: var(--stop);
 }
 
-/* ============================================================
-   Status text
-   ============================================================ */
+
 .hint {
   font-size: 0.83rem;
   color: var(--warn);
@@ -959,18 +930,14 @@ select {
   text-decoration: underline;
 }
 
-/* ============================================================
-   Focus states
-   ============================================================ */
+
 button:focus-visible,
 select:focus-visible {
   outline: 2px solid var(--line);
   outline-offset: 2px;
 }
 
-/* ============================================================
-   Responsive: collapse sidebar to a top nav below ~960px
-   ============================================================ */
+
 @media (max-width: 960px) {
   .sidebar {
     display: none;

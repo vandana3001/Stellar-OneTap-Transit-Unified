@@ -37,7 +37,7 @@ pub enum DataKey {
     Admin,
     RegistryAddr,
     TokenAddr,
-    Trip(Address), // rider -> active TripState
+    Trip(Address), 
 }
 
 #[contracterror]
@@ -76,11 +76,7 @@ impl TransitController {
         Ok(())
     }
 
-    /// Rider taps in at `entry_station` on `operator_id`.
-    /// Cross-contract flow:
-    ///   1. ask operator-registry if the operator is active
-    ///   2. ask operator-registry for the max_fare to hold
-    ///   3. ask fare-token to transfer that hold from rider -> this contract
+    
     pub fn tap_in(
         env: Env,
         rider: Address,
@@ -103,11 +99,7 @@ impl TransitController {
         }
         let hold_amount = registry.get_max_fare(&operator_id);
 
-        // Rider's tokens move into escrow (this contract's own address)
-        // until tap-out settles the real fare. Because `rider` already
-        // called `require_auth()` above in this same invocation,
-        // Soroban's auth framework allows this nested transfer call
-        // without asking the rider to sign twice.
+        
         let token = Self::token_client(&env);
         let this_contract = env.current_contract_address();
         token.transfer(&rider, &this_contract, &hold_amount);
@@ -121,9 +113,7 @@ impl TransitController {
         env.storage()
             .temporary()
             .set(&DataKey::Trip(rider.clone()), &trip);
-        // Trip state only needs to live for the duration of a single ride;
-        // give it a generous TTL (~1 day at 5s/ledger) rather than paying
-        // for permanent persistent storage.
+        
         env.storage()
             .temporary()
             .extend_ttl(&DataKey::Trip(rider.clone()), 100, 17_280);

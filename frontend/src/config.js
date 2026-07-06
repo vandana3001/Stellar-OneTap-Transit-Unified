@@ -1,4 +1,4 @@
-// Fill these in after running the deployment steps in README.md
+
 export const NETWORK = {
   networkPassphrase: "Test SDF Network ; September 2015",
   rpcUrl: "https://soroban-testnet.stellar.org",
@@ -11,8 +11,7 @@ export const CONTRACTS = {
   transitController: import.meta.env.VITE_CONTROLLER_CONTRACT_ID || "CATTPBDRTCJTKB4YWT3CCCBGG2SI7QQ2CCOQTJY5WKKGKQEEGJM7SCRR",
 };
 
-// Demo operators/stations seeded via the `register_operator` / `set_fare`
-// admin calls described in README.md - keep in sync with your on-chain data.
+
 export const OPERATORS = [
   { id: "DL_METRO", label: "Delhi Metro" },
   { id: "MUM_METRO", label: "Mumbai Metro" },

@@ -59,18 +59,13 @@ export default function App() {
   const [faucetError, setFaucetError] = useState(null);
   const [faucetClaimed, setFaucetClaimed] = useState(false);
 
-  // Real, on-chain transaction history for the connected wallet (via
-  // Horizon), plus a live SSE subscription so new operations appear
-  // the moment they confirm - not just the ones made in this session.
+ 
   const [chainHistory, setChainHistory] = useState([]);
   const [historyStatus, setHistoryStatus] = useState(STATUS.IDLE);
   const [historyError, setHistoryError] = useState(null);
   const [historyLive, setHistoryLive] = useState(false);
 
-  // isFreighterAvailable() round-trips a real message to the extension
-  // (via @stellar/freighter-api) instead of just checking for an
-  // injected object, so it's async. Poll briefly on mount since the
-  // extension's content script can attach slightly after our first render.
+  
   useEffect(() => {
     let attempts = 0;
     let cancelled = false;
@@ -101,12 +96,7 @@ export default function App() {
     };
   }, []);
 
-  // Pulls the rider's real on-chain trip state and syncs local UI
-  // state to match it. Used right after connecting, and again after
-  // every tap, so the buttons never lie about what's actually on chain.
-  // On failure, local state is left as-is (so the UI doesn't lie in
-  // the other direction) but the error is surfaced with a retry option
-  // rather than failing silently.
+  
   const syncTripState = useCallback(async (key) => {
     setTripSyncing(true);
     setTripSyncError(null);
@@ -126,10 +116,7 @@ export default function App() {
     }
   }, []);
 
-  // Pulls the rider's real FARE balance and faucet-claim status.
-  // Same pattern as syncTripState: keep the last known values on
-  // failure, but tell the rider so they can retry instead of staring
-  // at a balance that might be stale or wrong.
+  
   const syncBalanceState = useCallback(async (key) => {
     setBalanceSyncing(true);
     setBalanceSyncError(null);
@@ -162,15 +149,12 @@ export default function App() {
     }
   }, [syncTripState, syncBalanceState]);
 
-  // Auto-claim the faucet the first time a new, unfunded wallet
-  // connects - so a brand new user never has to know a faucet exists
-  // or ask anyone to fund them. Only fires once balance/claim status
-  // has actually loaded, and only if genuinely unclaimed.
+  
   useEffect(() => {
     if (!publicKey) return;
-    if (balance === null) return; // still loading
+    if (balance === null) return; 
     if (faucetClaimed) return;
-    if (balance > 0) return; // already has funds some other way
+    if (balance > 0) return; 
     if (faucetStatus === STATUS.LOADING || faucetStatus === STATUS.SUCCESS) return;
 
     (async () => {
@@ -187,10 +171,7 @@ export default function App() {
     })();
   }, [publicKey, balance, faucetClaimed, faucetStatus, syncBalanceState]);
 
-  // Fetches the initial page of on-chain history for an address.
-  // Pulled out as its own function (rather than inline in the effect
-  // below) so a "Retry" button can call it again after a failure,
-  // without having to re-run wallet connection or restart the stream.
+  
   const loadHistory = useCallback(async (key) => {
     setHistoryStatus(STATUS.LOADING);
     setHistoryError(null);
@@ -204,10 +185,6 @@ export default function App() {
     }
   }, []);
 
-  // Loads real on-chain history for the connected wallet from Horizon,
-  // then opens a live SSE stream so newly-confirmed operations (taps,
-  // faucet claims, anything) appear in real time without polling.
-  // Torn down on disconnect/unmount so we never leak an open stream.
   useEffect(() => {
     if (!publicKey) {
       setChainHistory([]);

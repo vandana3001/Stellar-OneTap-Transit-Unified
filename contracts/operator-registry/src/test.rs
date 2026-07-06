@@ -23,7 +23,7 @@ fn test_initialize_and_register_operator() {
         &Symbol::new(&env, "DL_METRO"),
         &Symbol::new(&env, "DelhiMetro"),
         &wallet,
-        &3000, // max_fare, e.g. 30.00 in smallest unit
+        &3000, 
     );
 
     let op = client.get_operator(&Symbol::new(&env, "DL_METRO"));
@@ -57,19 +57,18 @@ fn test_fare_matrix_and_fallback_to_max_fare() {
 
     client.register_operator(&op_id, &Symbol::new(&env, "MumbaiMetro"), &wallet, &4000);
 
-    // Before any specific station-pair fare is set, get_fare should fall
-    // back to max_fare (flat-fare mode for a newly onboarded operator).
+    
     let station_a = Symbol::new(&env, "ANDHERI");
     let station_b = Symbol::new(&env, "CHURCHGT");
     let fare = client.get_fare(&op_id, &station_a, &station_b);
     assert_eq!(fare, 4000);
 
-    // Now set a real zone fare, which should override the fallback.
+    
     client.set_fare(&op_id, &station_a, &station_b, &1500);
     let fare2 = client.get_fare(&op_id, &station_a, &station_b);
     assert_eq!(fare2, 1500);
 
-    // Reverse direction should still fall back since it wasn't set.
+    
     let fare_reverse = client.get_fare(&op_id, &station_b, &station_a);
     assert_eq!(fare_reverse, 4000);
 }
@@ -96,9 +95,7 @@ fn test_unknown_operator_is_not_active() {
     env.mock_all_auths();
     let (client, _admin) = setup(&env);
 
-    // is_active returns false (not a panic) for an operator that was
-    // never registered - transit-controller relies on this to reject
-    // taps cleanly instead of the whole call trapping.
+    
     assert!(!client.is_active(&Symbol::new(&env, "GHOST_OP")));
 }
 
